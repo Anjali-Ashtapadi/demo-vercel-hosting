@@ -3,53 +3,62 @@ import axios from 'axios';
 
 const API_BASE = "https://demo-render-hosting.onrender.com";
 
-axios.get(`${API_BASE}/api/tasks/`)
-  .then(res => console.log(res.data))
-  .catch(err => console.log(err));
-
-
 const TodoList = () => {
   const [todos, setTodos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newTask, setNewTask] = useState('');
   const [newDesc, setNewDesc] = useState('');
 
+  // ✅ FETCH TODOS
   useEffect(() => {
-  axios.get(API_BASE)
-    .then(response => {
-      setTodos(response.data);
-      setLoading(false);
-    })
-    .catch(error => {
-      console.error("Error fetching todos:", error);
-      setLoading(false);
-    });
-}, []);
+    axios.get(`${API_BASE}/api/tasks/`)
+      .then(response => {
+        // ensure it's always an array
+        setTodos(Array.isArray(response.data) ? response.data : []);
+        setLoading(false);
+      })
+      .catch(error => {
+        console.error("Error fetching todos:", error);
+        setTodos([]); // prevent map error
+        setLoading(false);
+      });
+  }, []);
 
-
+  // ✅ ADD TODO
   const handleSubmit = (e) => {
     e.preventDefault();
-    axios.post(API_BASE,{task: newTask, description: newDesc, completed: false}).then(response =>{
-      setTodos([...todos,response.data]);
+
+    axios.post(`${API_BASE}/api/tasks/`, {
+      task: newTask,
+      description: newDesc,
+      completed: false
+    })
+    .then(response => {
+      setTodos([...todos, response.data]);
       setNewTask('');
       setNewDesc('');
     })
-    .catch(error =>console.log('Error adding todo:',error))
+    .catch(error => console.error('Error adding todo:', error));
   };
 
+  // ✅ TOGGLE COMPLETE
   const toggleComplete = (id) => {
     const todo = todos.find(t => t.id === id);
     if (!todo) return;
 
-    axios.put(`${API_BASE}${id}/`, { ...todo, completed: !todo.completed })
-      .then(response => {
-        setTodos(todos.map(t => (t.id === id ? response.data : t)));
-      })
-      .catch(error => console.error('Error updating todo:', error));
+    axios.put(`${API_BASE}/api/tasks/${id}/`, {
+      ...todo,
+      completed: !todo.completed
+    })
+    .then(response => {
+      setTodos(todos.map(t => t.id === id ? response.data : t));
+    })
+    .catch(error => console.error('Error updating todo:', error));
   };
 
+  // ✅ DELETE TODO
   const deleteTodo = (id) => {
-    axios.delete(`${API_BASE}${id}/`)
+    axios.delete(`${API_BASE}/api/tasks/${id}/`)
       .then(() => {
         setTodos(todos.filter(t => t.id !== id));
       })
@@ -59,7 +68,8 @@ const TodoList = () => {
   return (
     <div className="p-4">
       <h1 className="text-2xl font-bold mb-4">Todo List</h1>
-      
+
+      {/* ✅ FORM */}
       <form onSubmit={handleSubmit} className="mb-4">
         <input 
           value={newTask} 
@@ -75,18 +85,27 @@ const TodoList = () => {
           required 
           className="border p-2 mr-2"
         />
-        <button type="submit" className="bg-blue-500 text-white p-2">Add Todo</button>
+        <button type="submit" className="bg-blue-500 text-white p-2">
+          Add Todo
+        </button>
       </form>
 
+      {/* ✅ LIST */}
       {loading ? (
         <p>Loading...</p>
+      ) : todos.length === 0 ? (
+        <p>No todos available</p>
       ) : (
         <ul>
           {todos.map(todo => (
-            <li key={todo.id} className="flex items-center justify-between mb-2 p-2 border">
+            <li 
+              key={todo.id} 
+              className="flex items-center justify-between mb-2 p-2 border"
+            >
               <span>
                 {todo.task} - {todo.description} ({todo.completed ? 'Done' : 'Pending'})
               </span>
+
               <div>
                 <button 
                   onClick={() => toggleComplete(todo.id)} 
@@ -94,6 +113,7 @@ const TodoList = () => {
                 >
                   Toggle
                 </button>
+
                 <button 
                   onClick={() => deleteTodo(todo.id)} 
                   className="bg-red-500 text-white p-1"
