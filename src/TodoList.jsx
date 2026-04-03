@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:8000/api/tasks/';
+const API_BASE = process.env.REACT_APP_API_URL;
+console.log(process.env.REACT_APP_API_URL);
 
 const TodoList = () => {
   const [todos, setTodos] = useState([]);
@@ -9,13 +10,17 @@ const TodoList = () => {
   const [newTask, setNewTask] = useState('');
   const [newDesc, setNewDesc] = useState('');
 
-  useEffect(()=>{axios.get(API_BASE)
-    .then(response =>{
+  useEffect(() => {
+  axios.get(API_BASE)
+    .then(response => {
       setTodos(response.data);
       setLoading(false);
+    })
+    .catch(error => {
+      console.error("Error fetching todos:", error);
+      setLoading(false);
     });
-
-  },[]);
+}, []);
 
 
   const handleSubmit = (e) => {
