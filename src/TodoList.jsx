@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_BASE = process.env.REACT_APP_API_URL;
+const API_BASE = "https://demo-render-hosting.onrender.com";
 
-console.log(process.env.REACT_APP_API_URL);
+axios.get(`${API_BASE}/api/tasks/`)
+  .then(res => console.log(res.data))
+  .catch(err => console.log(err));
+
 
 const TodoList = () => {
   const [todos, setTodos] = useState([]);
