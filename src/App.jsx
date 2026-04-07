@@ -1,10 +1,10 @@
 
-import TodoList from "./TodoList"
+import CoursesList from "./CoursesList"
 function App() {
 
   return (
     <div>
-      <TodoList/>
+      <CoursesList/>
     </div>
   )
 }
